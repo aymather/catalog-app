@@ -1,0 +1,8 @@
+<div id='tiers-wrapper'>
+    <h1 id='tier-title'>Tiers</h1>
+    {% for t in tiers %}
+        <a href='#'>
+            <div class='tier'>{{t.name}}</div>
+        </a>
+    {% endfor %}
+</div>

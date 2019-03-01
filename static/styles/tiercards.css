@@ -1,0 +1,29 @@
+#tiers-wrapper {
+    width: 70%;
+    margin: auto;
+    flex-wrap: wrap;
+    flex-direction: row;
+    margin-top: 15px;
+}
+
+.tier {
+    height: 145px;
+    min-width: 170px;
+    margin: 20px;
+    display: inline-block;
+    border: 1px solid #6133FF;
+    font-family: 'Rubik';
+    color: #fff;
+    font-weight: 900;
+    text-align: center;
+    align-items: center;
+    font-size: 3em;
+    display: flex;
+}
+
+#tier-title {
+    margin-left: 20px;
+    font-size: 3.5em;
+    font-family: 'Rubik';
+    color: #fff;
+}
