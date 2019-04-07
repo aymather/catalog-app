@@ -1,17 +1,10 @@
-<html>
-	<head>
-		<title>SSBM Discussion</title>
-		<link href="https://fonts.googleapis.com/css?family=Quicksand" rel="stylesheet">
-		<link rel="stylesheet" type="text/css" href="./static/styles/style.css">
-		<link rel="stylesheet" type="text/css" href="./static/styles/nav.css">
-		<link rel="stylesheet" type="text/css" href="./static/styles/footer.css">
-	</head>
-	<body>
-		<div id="landing">
-			<div id="wrapper">
-				{% include "/components/navbar.html" %}
-			</div>
-			{% include "/components/footer.html" %}
-		</div>
-	</body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "/components/header.html" %}
+</head>
+<body>
+    {% include "/components/nav.html" %}
+    {% include "/components/home_body.html" %}
+</body>
 </html>

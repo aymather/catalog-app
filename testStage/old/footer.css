@@ -1,0 +1,26 @@
+footer {
+    width: 100%;
+    display: block;
+    text-align: center;
+}
+
+.profile-wrap .footer p {
+    display: inline-block;
+    margin: 20px 2px;
+    color: #000;
+    font-size: 1.1em;
+}
+
+.fa {
+    font-size: 1.3em !important;
+    padding: 10px;
+}
+
+.footer a {
+    color: #000;
+}
+
+.fa:hover {
+    opacity: .7;
+}
+

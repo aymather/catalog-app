@@ -7,18 +7,16 @@
 }
 
 .tier {
-    height: 145px;
-    min-width: 170px;
-    margin: 20px;
+    height: 50px;
+    min-width: 50px;
     display: inline-block;
-    border: 1px solid #6133FF;
+    margin: 20px;
     font-family: 'Rubik';
     color: #fff;
     font-weight: 900;
     text-align: center;
     align-items: center;
     font-size: 3em;
-    display: flex;
 }
 
 #tier-title {

@@ -1,0 +1,23 @@
+.home-img {
+    width: 100vw;
+    height: 100vh;
+    opacity: rgba(0, 0, 0, .7);
+    filter: blur(1px);
+    position: absolute;
+    z-index: -1;
+}
+
+.text {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(1, 1, 1, .7);
+    border-radius: 15px;
+    padding: 15px;
+}
+
+.text > * {
+    margin: 10px 0 10px 0;
+    font-size: 2em;
+    color: #fff;
+}

@@ -1,0 +1,24 @@
+.about-wrap {
+    position: relative;
+    top: 100px;
+    width: 65%;
+    margin: auto;
+}
+
+.about-wrap h1 {
+    text-align: center;
+    padding: 15px;
+}
+
+.about-wrap section, 
+.about-wrap p {
+    margin: 15px;
+    padding: 15px;
+    line-height: 1.5em;
+    letter-spacing: .02em;
+    font-weight: 100;
+}
+
+.about-wrap h1 {
+    border-bottom: #ccc dotted 1px;
+}

@@ -1,0 +1,135 @@
+<div class='container'>
+ 
+    <div class='left box'>
+        <h1 class="title">Sign Up</h1>
+        <form action="{{url_for('Login')}}" method="POST" class='form'>
+            <input type='text' placeholder='Name' name='name' class='input'>
+            <input type='text' placeholder='Username' name='username' class='input'>
+            <input type='text' placeholder='Email' name='email' class='input'>
+            <input type='password' placeholder='Password' name='password' class='input'>
+            <input type='password' placeholder='Confirm Password' name='Cpassword' class='input'>
+            <button type='submit' class='btn'>Submit</button>
+        </form>
+    </div>
+    <div class='right box'>
+        <h1 class="title">Log In</h1>
+        <form action='{{url_for("Login")}}' method='POST' class='form'>
+            <input type='text' placeholder='Username' name='login_username' class='input'>
+            <input type='password' placeholder='Password' name='login_password' class='input'>
+            <button type='submit' class='btn'>Submit</button>
+            <p class='or'>or</p>
+            <div id='my-signin2'
+                data-scope="openid email"
+                data-clientid="{{client_id}}"
+                data-redirecturi="postmessage"
+                data-accesstype="offline"
+                data-cookiepolicy="single_host_origin"
+                data-approvalprompt="force"
+                data-width='400px'
+                data-height='400px'>
+            </div>
+            <fb:login-button scope="public_profile,email" onlogin="sendTokenToServer();" data-size="large" data-button-type="continue_with">
+                <a href="javascript:sendTokenToServer()">Login with Facebook</a>
+            </fb:login-button>
+        </div>
+    </div>
+    {% include "/components/footer.html" %}
+</div>
+<script>
+    function onSuccess(authObject) {
+        if (authObject.code) {
+            // Send an ajax call to our server with the one-time-code
+            $.ajax({
+                type: 'POST',
+                url: '/gconnect?state={{state}}', // the little secret we made
+                processData: false, // tells jquery not to process the response into a string
+                contentType: 'application/octet-stream; charset=utf-8', //headers
+                data: authObject.code, //one time use code as data we want to send
+
+                // If we get a successful response, this callback function will handle the response
+                success: function(result) {
+                    if (result.error) {
+                        $('#result').html('There was an error when calling to the application server.')
+                    } else {
+                        console.log('We made a successful call back to our server, we now have access to users information.')
+                        $('#result').html('Login successful! </br> ' + result + '</br> Redirecting...')
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 3000)
+                    }
+                }
+            });
+        } else if (authObject.error) {
+            console.log('There was an error from the authentication server: ' + authObject.error);  
+        } 
+    }   
+
+    function onFailure(error) {
+        console.log(error);
+    }
+
+    function renderButton(){
+        gapi.signin2.render('my-signin2', {
+            'scope': 'openid email',
+            'clientid': '{{client_id}}',
+            'redirecturi': 'postmessage',
+            'accesstype': 'offline',
+            'cookiepolicy': 'single_host_origin',
+            'approvalprompt': 'force',
+            'longtitle': true,
+            'theme': 'dark',
+            'onsuccess': onSuccess,
+            'onfailure': onFailure
+        })
+    }
+</script>
+<script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
+<script>
+function SignInCallbackFunction(authObject){
+    console.log('hi');
+    console.log(authObject);
+    
+}
+
+// Init FB
+window.fbAsyncInit = function(){
+    FB.init({
+        appId: '558754497970731',
+        cookie: true,
+        xfbml: true,
+        version: 'v2.2'
+    });
+};
+
+// Get SDK
+(function(d,s,id){
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js,fjs);
+}(document,'script','facebook-jssdk'));
+
+function sendTokenToServer(){
+    var access_token = FB.getAuthResponse()['accessToken'];
+    console.log(access_token);
+    FB.api('/me',function(response){
+        console.log('Successful login for ' + response.name);
+        $.ajax({
+            type: 'POST',
+            url: '/fbconnect?state={{state}}',
+            processData: false,
+            data: access_token,
+            contentType: 'application/octet-stream; charset=utf-8',
+            success: function(result){
+                if(result){
+                    $('#result').html('Login successful!</br>'+result+'</br>Redirecting...');
+                    setTimeout(function(){
+                        window.location.href = "/";
+                    }, 3000);
+                }
+            }
+        })
+    })
+}
+</script>

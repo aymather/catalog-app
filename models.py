@@ -15,6 +15,7 @@ class User(Base):
     username = Column(String, nullable = False)
     name = Column(String)
     email = Column(String)
+    password = Column(String)
     picture = Column(String)
     main_character = Column(String)
     sign_up_date = Column(DateTime(timezone = True), default = func.now())
@@ -40,6 +41,7 @@ class Character(Base):
     character_tier = Column(String(32), ForeignKey('tier.name'))
     tier = relationship(Tier)
     description = Column(String)
+    image = Column(String)
     creation_date = Column(DateTime(timezone = True), default = func.now())
 
     def get_date(self):
@@ -55,7 +57,7 @@ class CharacterDiscussion(Base):
     character = relationship('Character')
     character_id = Column(Integer, ForeignKey('character.id'))
     user = relationship(User)
-    user_id = Column(Integer, ForeignKey('user.id'))
+    username = Column(Integer, ForeignKey('user.username'))
     message = Column(String)
     date = Column(DateTime(timezone = True), default = func.now())
 

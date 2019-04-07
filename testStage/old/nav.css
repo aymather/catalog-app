@@ -1,0 +1,78 @@
+nav {
+    width: 100%;
+    height: 68px;
+    position: absolute;
+    background-color: #0e141f;
+    display: flex;
+    border-bottom: 1px solid #29303d;
+}
+
+#nav-items {
+    width: 60%;
+    display: flex;
+    margin: auto;
+}
+
+#left-relative {
+    width: 35%;
+    display: flex;
+}
+
+#left-relative img {
+    width: 55px;
+    height: 35px;
+    border-radius: 35%;
+}
+
+#logo-title {
+    color: #fff;
+    display: inline-block;
+    font-size: 1.8em;
+    margin-left: 8px;
+    font-family: 'Fredoka One';
+}
+
+#right-relative {
+    width: 65%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+#right-relative a {
+    text-decoration: none;
+    font-size: 1.5em;
+    color: #fff;
+    display: inline-block;
+    margin: 0 15px 0 15px;
+    position: relative;
+    font-family: 'Fredoka One';
+}
+
+#right-relative a:after {
+    content: '';
+    border-bottom: 3px solid #fff;
+    display: block;
+    width: 0;
+    position: absolute;
+    right: 0;
+    -webkit-transition: .5s ease;
+    transition: .5s ease;
+    border-radius: 20%;
+}
+
+#right-relative a:hover:after {
+    width: 100%;
+}
+
+#right-relative a:active {
+    color: #ffcb36;
+}
+
+#right-relative a img {
+	display: inline-block;
+	width: 35px;
+	height: 35px;
+	border-radius: 50%;
+}

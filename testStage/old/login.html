@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+	<script src="https://apis.google.com/js/client:platform.js?onload=start"></script>
+    <link rel="stylesheet" type="text/css" href="./static/styles/nav.css">
+    <link rel="stylesheet" type="text/css" href="./static/styles/style.css">
+    <link rel="stylesheet" type="text/css" href="./static/styles/footer.css">
+    <link rel="stylesheet" type="text/css" href="./static/styles/login.css">
+    <link href="https://fonts.googleapis.com/css?family=Fredoka+One" rel="stylesheet">
+    <title>Login</title>
+</head>
+<body>
+    <div id="landing">
+        <div id="wrapper">
+            {% include "/components/navbar.html" %}
+            <div id="login-wrapper">
+                <div id="login-title">Log In</div>
+                <div id="btn-wrapper">
+                    <span class="g-signin"
+                        data-scope="openid email"
+                        data-clientid="{{client_id}}"
+                        data-redirecturi="postmessage"
+                        data-accesstype="offline"
+                        data-cookiepolicy="single_host_origin"
+                        data-callback="SignInCallbackFunction"
+                        data-approvalprompt="force">
+                    </span>
+                    <fb:login-button scope="public_profile,email" onlogin="sendTokenToServer();">
+                        <a href="javascript:sendTokenToServer()">Login with Facebook</a>
+                    </fb:login-button>
+                </div>
+            </div>
+        </div>
+        {% include "/components/footer.html" %}
+    </div>
+
+
+
+
+    <!--JAVASCRIPT-->
+    <script>
+        function SignInCallbackFunction(authObject){
+            if (authObject.code) {
+                // Send an ajax call to our server with the one-time-code
+                $.ajax({
+                    type: 'POST',
+                    url: '/gconnect?state={{state}}', // the little secret we made
+                    processData: false, // tells jquery not to process the response into a string
+                    contentType: 'application/octet-stream; charset=utf-8', //headers
+                    data: authObject.code, //one time use code as data we want to send
+
+                    // If we get a successful response, this callback function will handle the response
+                    success: function(result) {
+                        if (result.error) {
+                            $('#result').html('There was an error when calling to the application server.')
+                        } else {
+                            console.log('We made a successful call back to our server, we now have access to users information.')
+                            $('#result').html('Login successful! </br> ' + result + '</br> Redirecting...')
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 3000)
+                        }
+                    }
+                });
+            } else if (authObject.error) {
+                console.log('There was an error from the authentication server: ' + authObject.error);	
+            } 
+        }
+
+        // Init FB
+        window.fbAsyncInit = function(){
+            FB.init({
+                appId: '558754497970731',
+                cookie: true,
+                xfbml: true,
+                version: 'v2.2'
+            });
+        };
+
+        // Get SDK
+        (function(d,s,id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js,fjs);
+        }(document,'script','facebook-jssdk'));
+
+        function sendTokenToServer(){
+            var access_token = FB.getAuthResponse()['accessToken'];
+            console.log(access_token);
+            FB.api('/me',function(response){
+                console.log('Successful login for ' + response.name);
+                $.ajax({
+                    type: 'POST',
+                    url: '/fbconnect?state={{state}}',
+                    processData: false,
+                    data: access_token,
+                    contentType: 'application/octet-stream; charset=utf-8',
+                    success: function(result){
+                        if(result){
+                            $('#result').html('Login successful!</br>'+result+'</br>Redirecting...');
+                            setTimeout(function(){
+                                window.location.href = "/";
+                            }, 3000);
+                        }
+                    }
+                })
+            })
+        }
+    </script>
+</body>
+</html>

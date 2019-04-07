@@ -1,11 +1,11 @@
 @font-face {
 	font-family: 'Gotham Rounded Light';
-	src: url("../fonts/GothamRoundedLight_21020.ttf");
+	src: url("../static/fonts/GothamRoundedLight_21020.ttf");
 }
 
 @font-face {
 	font-family: 'Gotham Rounded Medium';
-	src: url("../fonts/GothamRounded-Medium.otf");
+	src: url("../static/fonts/GothamRounded-Medium.otf");
 }
 
 * {
@@ -31,11 +31,14 @@ body {
 	width: 100%;
 }
 
-#tiers-wrapper {
+.wrapper {
     position: relative;
     top: 100px;
     width: 58%;
     margin: auto;
+}
+
+#tiers-wrapper {
     display: grid;
     grid-gap: 1em;
     grid-template-columns: 1fr 2fr;
@@ -139,7 +142,6 @@ nav {
 #right-relative {
     width: 65%;
     display: flex;
-    justify-content: flex-end;
     align-items: center;
     justify-content: flex-end;
 }
@@ -150,7 +152,6 @@ nav {
     color: #fff;
     display: inline-block;
     margin: 0 15px 0 15px;
-    position: relative;
 }
 
 #right-relative a:after {
@@ -171,6 +172,31 @@ nav {
 
 #right-relative a:active {
     color: #ffcb36;
+}
+
+.mobile-nav {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: 3px 2px 8px #000;
+    display: none;
+}
+
+@media screen and (max-width: 975px) {
+    #logo-title {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 750px) {
+    #left-relative {
+        display: none;
+    }
+    #right-relative {
+        display: block;
+        width: 100vw;
+        font-size: .6rem;
+    }
 }
 
 .container {
@@ -307,4 +333,3 @@ footer {
 .about-wrap h1 {
     border-bottom: #ccc dotted 1px;
 }
-

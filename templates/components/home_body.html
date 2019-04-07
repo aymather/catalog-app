@@ -1,0 +1,22 @@
+<style type="text/css">
+	.wrapper {
+		position: absolute;
+		top: 250px;
+		text-align: center;
+	}
+</style>
+<div class="wrapper">
+	{% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{message}}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %} 
+    <div class="text">
+        <h3>Welcome to the SSBM Database /</h3>
+        <h3>The Discussion Boards /</h3>
+        <h3>The Dinkle-Bergs</h3>
+        <p>Whatever it is to you, I hope you enjoy :)</p>
+    </div>
+</div>

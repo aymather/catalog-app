@@ -1,0 +1,53 @@
+<style>
+    .character-wrapper {
+        position: relative;
+        top: 150px;
+        text-align: center;
+    }
+    .character-img {
+        width: 200px;
+        height: auto;
+    }
+    .discussion-wrapper {
+        margin-top: 50px;
+    }
+    .message {
+        width: 60%;
+        height: auto;
+        margin-top: 50px;
+        font-size: 1rem;
+        text-align: none;
+        padding: 1em 0;
+    }
+    .btn-submit {
+        font-size: 1rem;
+        padding: 1em 2em;
+        border: 1px solid lightcoral;
+        color: lightcoral;
+    }
+    .btn-submit:hover {
+        cursor: pointer;
+    }
+    .message-wrapper {
+        width: 60%;
+        background-color: #fafafa;
+        border: 1px solid lightcoral;
+        padding: 1em 2em;
+        margin: 1em auto;
+        border-radius: 5px;
+    }
+</style>
+
+<div class="character-wrapper">
+
+    <img class='character-img' src="/static/img/{{character.image}}" alt="{{character.name}}">
+    <h1 class="char-name">
+        {{character.name}}
+    </h1>
+    
+    <form action='{{url_for("EditCharacter", char_name=character.name)}}' method='POST'>
+        <input type='text' name='body' value='{{character.description}}'>
+        <button type='submit'>Submit</button>
+    </form>
+
+</div>
