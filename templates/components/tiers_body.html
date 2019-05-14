@@ -1,24 +1,13 @@
-<div id='tiers-wrapper'>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <p>{{message}}</p>
-            {% endfor %}
-        {% endif %}
-    {% endwith %} 
-    <h1 id='tier-title'>Tiers</h1>
-    <h1 id='chars-title'>Characters</h1>
-    <div id="tiers">
-
+<!--BODY START-->
+<div class='wrapper char-select-wrap'>
+    <div class="tiers-wrapper">
+        <h1 id='tier-title'>Tiers</h1>
         {% for tier in tiers %}
-
             <div class='tier click'>{{tier.name}}</div>
-
         {% endfor %}
-
     </div>
-
-    <div class="character">
+    <div class="characters-wrapper">
+        <h1 id='chars-title'>Characters</h1>
         <div class="chars SS">
             {% for char in SS %}
                 <a href='{{url_for("Characters",char_name=char.name)}}'>{{char.name}}</a>
@@ -60,13 +49,5 @@
             {% endfor %}
         </div>
     </div>
-    {% include "/components/footer.html" %}
 </div>
-<script>
-    $('.click').click(function(e){
-        var dispObj = e.target.innerHTML;
-        $('.chars').css('display', 'none');
-        $(`.${dispObj}`).css('display', 'block');
-        $('#chars-title')[0].innerHTML = `${dispObj} - Tier`;
-    })
-</script>
+<!--BODY END-->

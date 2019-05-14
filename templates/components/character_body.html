@@ -1,44 +1,4 @@
-<style>
-    .character-wrapper {
-        position: relative;
-        top: 150px;
-        text-align: center;
-    }
-    .character-img {
-        width: 200px;
-        height: auto;
-    }
-    .discussion-wrapper {
-        margin-top: 50px;
-    }
-    .message {
-        width: 60%;
-        height: auto;
-        margin-top: 50px;
-        font-size: 1rem;
-        text-align: none;
-        padding: 1em 0;
-    }
-    .btn-submit {
-        font-size: 1rem;
-        padding: 1em 2em;
-        border: 1px solid lightcoral;
-        color: lightcoral;
-    }
-    .btn-submit:hover {
-        cursor: pointer;
-    }
-    .message-wrapper {
-        width: 60%;
-        background-color: #fafafa;
-        border: 1px solid lightcoral;
-        padding: 1em 2em;
-        margin: 1em auto;
-        border-radius: 5px;
-    }
-</style>
-
-<div class="character-wrapper">
+<div class="wrapper character-wrapper">
 
     <img class='character-img' src="/static/img/{{character.image}}" alt="{{character.name}}">
     <h1 class="char-name">
@@ -49,22 +9,25 @@
         {{character.description}}
     </p>
 
-    <div class="edit-delete-buttons">
-        <span><a href='{{url_for("EditCharacter", char_name=character.name)}}'>Edit</a></span>
-    </div>
+    {% if login_session.permission == 'admin' %}
+        <div class="edit-delete-buttons">
+            <span><a href='{{url_for("EditCharacter", char_name=character.name)}}'>Edit</a></span>
+        </div>
+    {% endif %}
 
     <section class='discussion-wrapper'>
         <h2>Join the Conversation</h2>
-        <form action="{{url_for('Characters', char_name=character.name)}}" method='POST'>
-            <input type="text" name='message' class='message'>
-            <button type='submit' class='btn-submit'>Submit</button>
+        <form class='form' action="{{url_for('Characters', char_name=character.name)}}" method='POST'>
+            <textarea type="text" name='message' class='textbox'></textarea>
+            <button type='submit' class='btn'>Submit</button>
         </form>
+        <h1>Comments</h1>
 
         {% for comment in comments %}
             <div class="message-wrapper">
-                <h5>{{comment.username}}</h5>
-                <p>{{comment.message}}</p>
-                <footer>{{comment.date}}</footer>
+                <p class='message-name'>{{comment.username}}</p>
+                <p class='message-body'>{{comment.message}}</p>
+                <p class='message-date'>{{comment.date}}</p>
                 {% if login_session.username == comment.username %}
                     <div class="edit-delete-buttons">
                         <span><a href="{{url_for('EditPost', char_name=character.name, post_id=comment.id)}}">Edit</a></span>
@@ -72,7 +35,6 @@
                     </div>
                 {% endif %}
             </div>
-        {% endfor %}
-
+        {% endfor %} 
     </section>
 </div>

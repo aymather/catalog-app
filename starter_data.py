@@ -11,9 +11,9 @@ session = DBSession()
 # USERS
 #################################################
 
-user1 = User(name = 'Alec Mather', username = 'aymather', email = 'aymather@gmail.com', main_character = 'Falco')
-session.add(user1)
-session.commit()
+# user1 = User(name = 'Alec Mather', username = 'aymather', email = 'aymather@gmail.com', main_character = 'Falco')
+# session.add(user1)
+# session.commit()
 
 #################################################
 # TIERS

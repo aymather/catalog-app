@@ -1,0 +1,1 @@
+3. Only allow character edits from admins

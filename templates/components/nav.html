@@ -1,14 +1,21 @@
 <nav>
-    <div id="nav-items">
-        <div id="left-relative">
-            <img src="/static/img/MeleeLogo.png" alt="">
-            <div id='logo-title'>SSBM DB</div>
-        </div>
-        <div id='right-relative'>
-            <a href='{{ url_for("About") }}'>About</a>
-            <a href='{{ url_for("Profile") }}'>Profile</a>
-            <a href='{{ url_for("Tiers") }}'>Tiers</a>
-            <a href='{{ url_for("Login") }}'>Login</a>
-        </div>
+    <div class="left-nav">
+        <a class='logo-title' href='{{url_for("Home",login_session=login_session)}}'>SSBM DB</a>
+    </div>
+    <div class='right-nav'>
+        <a href='{{url_for("About",login_session=login_session)}}' class='nav-links'>About</a>
+        <a href='{{url_for("Tiers",login_session=login_session)}}' class='nav-links'>Tiers</a>
+        {% if not login_session.username %}
+            <a href='{{url_for("Login",login_session=login_session)}}' class='nav-links'>Login</a>
+        {% endif %}
+        {% if login_session.username %}
+            <a href='{{url_for("Profile",login_session=login_session)}}' class='nav-links'>Profile</a>
+            <a href='{{url_for("Logout",login_session=login_session)}}' class='nav-links'>Logout</a>
+        {% endif %}
+    </div>
+    <div class="burger">
+        <div class="bun1"></div>
+        <div class="bun2"></div>
+        <div class="bun3"></div>
     </div>
 </nav>

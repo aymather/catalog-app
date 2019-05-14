@@ -1,24 +1,11 @@
-<style type="text/css">
-	.edit-post-wrapper {
-		position: relative;
-		top: 150px;
-		left: 150px;
-		width: 60%;
-	}
-	.edit-post-wrapper button {
-		border: 1px solid lightcoral;
-		padding: 1em 2em;
-		color: lightcoral;
-	}
-	.edit-post-wrapper button:hover {
-		cursor: pointer;
-	}
-</style>
-<div class='edit-post-wrapper'>
+<!--BODY START-->
+<div class='wrapper edit-post-wrapper'>
 	<h1>Edit Post</h1>
-	<form action='' method='POST'>
-		<input type='text' name='message' value='{{oldPost.message}}'>
-		<button type='submit' name='confirm'>Submit</button>
-		<button type='submit' name='cancel'>Cancel</button>
+	<form class='form' action='' method='POST'>
+		<textarea class='textbox' type='text' name='message'>{{oldPost.message}}
+		</textarea>
+		<button class='btn' type='submit' name='confirm'>Submit</button>
+		<button class='btn' type='submit' name='cancel'>Cancel</button>
 	</form>
 </div>
+<!--BODY END-->

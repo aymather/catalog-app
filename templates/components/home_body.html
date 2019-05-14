@@ -1,22 +1,15 @@
-<style type="text/css">
-	.wrapper {
-		position: absolute;
-		top: 250px;
-		text-align: center;
-	}
-</style>
-<div class="wrapper">
-	{% with messages = get_flashed_messages() %}
+<div class="wrapper home-wrap">
+    {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for message in messages %}
                 <p>{{message}}</p>
             {% endfor %}
         {% endif %}
     {% endwith %} 
+    <img src="../../static/img/collage.png" alt="collage" id='collage'>
+    <img src="../../static/img/melee.jpg" alt="melee" id='melee'>
     <div class="text">
-        <h3>Welcome to the SSBM Database /</h3>
-        <h3>The Discussion Boards /</h3>
-        <h3>The Dinkle-Bergs</h3>
-        <p>Whatever it is to you, I hope you enjoy :)</p>
+        <h1>SSBM</h1>
+        <h1>Database</h1>
     </div>
 </div>

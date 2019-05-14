@@ -1,14 +1,40 @@
-<div class="profile-wrap">
-	{% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <p>{{message}}</p>
-            {% endfor %}
+<!--BODY START-->
+<div class="wrapper profile-wrap">
+    <div class="profile-title">
+        <h1><span class='welcome'>Welcome, </span>{{login_session.username}}</h1>
+        {% if login_session.picture %}
+            <img src="{{login_session.picture}}" alt="Profile" class='prof-pic'>
         {% endif %}
-    {% endwith %} 
-    <h1 class="profile-title">
-        Welcome, Alec Mather!
-        <img src="/static/img/login-bg.jpg" alt="Profile" class='prof-pic'>
-    </h1>
-    {% include "/components/footer.html" %}
+    </div>
+    <form action="{{ url_for('Profile') }}" method="post" class='profile-settings'>
+        <div class="field">
+            <label for="name">Name: </label>
+            <input type="text" name="name" id="name" value="{{login_session.name}}">
+        </div>
+        <div class="field">
+            <label for="username">Username: </label>
+            <input type="text" name="username" id="username" value="{{login_session.username}}">
+        </div>
+        <div class="field">
+            <label for="email">Email: </label>
+            <input type="text" name="email" id="email" value="{{login_session.email}}">
+        </div>
+        <div class="field">
+            <label for="character">Character: </label>
+            <input type="text" name="main_character" id="character" value="{{login_session.main_character}}">
+        </div>
+        <div class="field">
+            <label for="picture">Picture: </label>
+            <input type="text" name="picture" id="picture" value="{{login_session.picture}}">
+        </div>
+        <div class="field">
+            <label for="permission">Permissions: </label>
+            <select name="permission" id="permission">
+                <option value="standard">Standard</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+        <button type="submit" class='btn'>Update Information</button>
+    </form>
 </div>
+<!--BODY END-->

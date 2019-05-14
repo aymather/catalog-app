@@ -6,6 +6,8 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 import datetime
+from passlib.apps import custom_app_context as pwd_context
+
 Base = declarative_base()
 
 
@@ -15,9 +17,10 @@ class User(Base):
     username = Column(String, nullable = False)
     name = Column(String)
     email = Column(String)
-    password = Column(String)
+    password_hash = Column(String)
     picture = Column(String)
     main_character = Column(String)
+    permission = Column(String)
     sign_up_date = Column(DateTime(timezone = True), default = func.now())
 
     def get_date(self):
@@ -25,6 +28,16 @@ class User(Base):
         year, month, day = strdate.split('/')
         date_array = [int(year), int(month), int(day)]
         return date_array
+
+    def hash_password(self, password):
+        print(pwd_context)
+        print(pwd_context.encrypt(password))
+        self.password_hash = pwd_context.encrypt(password)
+        print(self.password_hash)
+
+    def verify_password(self, password):
+        print("Tried verifying password")
+        return pwd_context.verify(password, self.password_hash)
 
 
 class Tier(Base):

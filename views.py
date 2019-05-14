@@ -4,10 +4,12 @@ import string
 import httplib2
 import requests
 
-from flask import Flask, make_response, render_template, request, flash, jsonify, redirect
+from flask import Flask, make_response, render_template, request, flash, jsonify, redirect, url_for
 from flask import session as login_session
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
+
+from flask_httpauth import HTTPBasicAuth
 
 from models import Base, Character, CharacterDiscussion, Tier, User
 from oauth2client.client import FlowExchangeError
@@ -19,13 +21,17 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+# Auth instance
+auth = HTTPBasicAuth()
+
 # Init Flask app
 app = Flask(__name__)
+FB_ID = '558754497970731'
+FB_SECRET = 'b657c7ebccbec31303247eac3dc598c9'
 CLIENT_ID = json.loads(open('./secrets/client_secrets.json','r').read())['web']['client_id']
 
 @app.route('/login', methods=['GET', 'POST'])
 def Login():
-	print login_session
 	state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
 	login_session['state'] = state
 	if request.method == 'POST':
@@ -33,18 +39,19 @@ def Login():
 			status = logUserIn(username=request.form['login_username'], 
 					  			password=request.form['login_password'])
 			if status != None:
-				return '<h1>Success! Now logged in as {}</h1>'.format(login_session['username'])
+				flash('Success! Now logged in as {}'.format(login_session['username']))
+				return redirect('/')
 			else:
 				flash('Unsuccessful login...')
-				return redirect('Login')
-		user = createInternalUser(name = request.form['name'], 
+				return redirect('/login')
+		createInternalUser(name = request.form['name'], 
 							username = request.form['username'], 
-							email = request.form['email'], 
-							password = request.form['password'], 
+							email = request.form['email'],
+							password = request.form['password'],
 							Cpassword = request.form['Cpassword'])
-		return redirect('/')
+		return redirect('/?login_session={}'.format(login_session))
 	return render_template('login.html', 
-							login_session=convertLoginSession(login_session), 
+							login_session=login_session, 
 							state=state,
 							client_id=CLIENT_ID)
 
@@ -52,16 +59,19 @@ def Login():
 @app.route('/logout')
 def Logout():
 
-	clear_login_session(login_session)
+	if 'username' in login_session:
+		clear_login_session(login_session)
+		flash('You have been logged out.')
+	else:
+		flash('You were never logged in')
 
-	flash('You have been logged out.')
 	return redirect('/')
 
 
 @app.route('/')
 def Home():
 	return render_template('home.html',
-							login_session=convertLoginSession(login_session))
+							login_session=login_session)
 
 
 @app.route('/tiers')
@@ -85,13 +95,15 @@ def Tiers():
 							D=D,
 							E=E,
 							F=F,
-							login_session=convertLoginSession(login_session))
+							login_session=login_session)
 
 
 @app.route('/characters/<string:char_name>', methods=['GET','POST'])
 def Characters(char_name):
 	character = session.query(Character).filter_by(name=char_name).first()
 	if request.method == 'POST':
+		if 'username' not in login_session:
+			return redirect(url_for('Login', login_session=login_session))
 		message = request.form['message']
 		newMessage = CharacterDiscussion(character_id = character.id,
 										 username = login_session['username'],
@@ -104,11 +116,13 @@ def Characters(char_name):
 	return render_template('character.html',
 							character=character,
 							comments=comments,
-						    login_session=convertLoginSession(login_session))
+						    login_session=login_session)
 
 
 @app.route('/delete/<string:char_name>/<int:post_id>', methods=['GET', 'POST'])
 def DeletePost(char_name, post_id):
+	if 'username' not in login_session:
+		return redirect(url_for('Login', login_session=login_session))
 	character = session.query(Character).filter_by(name = char_name).first()
 	if request.method == 'POST':
 		if 'confirm' in request.form:
@@ -118,12 +132,14 @@ def DeletePost(char_name, post_id):
 		return redirect('/characters/{}'.format(char_name))
 	return render_template('confirmDelete.html',
 							character = character,
-							post_id = post_id)
+							post_id = post_id,
+						    login_session=login_session)
 
 
 @app.route('/edit/<string:char_name>/<int:post_id>', methods=['GET', 'POST'])
 def EditPost(char_name, post_id):
-	character = session.query(Character).filter_by(name=char_name).first()
+	if 'username' not in login_session:
+		return redirect(url_for('Login',login_session=login_session))
 	oldPost = session.query(CharacterDiscussion).filter_by(id=post_id).first()
 	if request.method == 'POST':
 		if 'confirm' in request.form:
@@ -133,11 +149,17 @@ def EditPost(char_name, post_id):
 			session.commit()
 			return redirect('/characters/{}'.format(char_name))
 	return render_template('editPost.html',
-							oldPost=oldPost)
+							oldPost=oldPost,
+						    login_session=login_session)
 
 
 @app.route('/<string:char_name>/edit', methods=['GET', 'POST'])
 def EditCharacter(char_name):
+	if 'username' not in login_session:
+		return redirect(url_for('Login',login_session=login_session))
+	if 'permission' in login_session and login_session['permission'] != 'admin':
+		flash('You do not have permission to edit this character.')
+		return redirect(url_for('Character',login_session=login_session))
 	character = session.query(Character).filter_by(name=char_name).first()
 	if request.method == 'POST':
 		newDescription = request.form['body']
@@ -147,43 +169,140 @@ def EditCharacter(char_name):
 		return redirect('/characters/{}'.format(char_name))
 
 	return render_template('editCharacter.html',
-					character=character)
+							character=character,
+						    login_session=login_session)
 
-@app.route('/profile')
+@app.route('/profile', methods=['GET', 'POST'])
 def Profile():
+	print('Profile route')
+	print(login_session)
+	if 'username' not in login_session:
+		return redirect(url_for('Login', login_session=login_session))
+	if request.method == 'POST':
+
+		# Get the current user
+		user = session.query(User).filter_by(username = login_session['username']).first()
+
+		# Update the user
+		user.username = request.form['username']
+		user.name = request.form['name']
+		user.picture = request.form['picture']
+		user.main_character = request.form['main_character']
+		user.email = request.form['email']
+		user.permission = request.form['permission']
+
+		# Commit to session
+		session.add(user)
+		session.commit()
+
+		# Update login_session
+		login_session['username'] = user.username
+		login_session['name'] = user.name
+		login_session['email'] = user.email
+		login_session['picture'] = user.picture
+		login_session['main_character'] = user.main_character
+		login_session['permission'] = user.permission
+
 	return render_template('profile.html',
-							login_session=convertLoginSession(login_session))
+							login_session=login_session)
 
 
 @app.route('/about')
 def About():
 	return render_template('about.html',
-							login_session=convertLoginSession(login_session))
+							login_session=login_session)
 
-
+# # # # # # # # # # # # # # # # # # # # # #
+# FACEBOOK LOGIN
 @app.route('/fbconnect', methods = ['POST'])
 def FacebookSignIn():
 	if request.args.get('state') != login_session['state']:
 		response = make_response(json.loads('Invalid state.'),401)
 		response.headers['content-type'] = 'application/json'
 		return response
-	data = request.data
-	return '<h1>{}</h1>'.format(data)
+
+	# Extract access token
+	access_token = request.data
+
+	# Make request to FB using short-term access_token
+	url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id={}&client_secret={}&fb_exchange_token={}'.format(FB_ID,FB_SECRET,access_token)
+	h = httplib2.Http()
+	result = h.request(url,'GET')[1]
+
+	# Get the long term request token
+	results = json.loads(result)
+	token = results['access_token']
+
+	# Make api request for user data
+	url = "https://graph.facebook.com/v2.8/me?access_token={}&fields=name,id,email".format(token)
+	h = httplib2.Http()
+	result = h.request(url,'GET')[1]
+	data = json.loads(result)
+
+	# Facebook uses a separate api call to get the profile picture
+	url = 'https://graph.facebook.com/v2.8/me/picture?access_token={}&redirect=0&height=200&width=200'.format(token)
+	h = httplib2.Http()
+	result = h.request(url,'GET')[1]
+	pic_data = json.loads(result)
+
+	# Place profile picture into login_session
+	picture = pic_data['data']['url']
+
+	# Do this stuff only if the user didn't already exist
+	# Place variables into login_session
+	if not checkEmail(data['email']):
+		login_session['provider'] = 'facebook'
+		login_session['name'] = data['name']
+		login_session['email'] = data['email']
+		login_session['user_id'] = data['id']
+		login_session['picture'] = picture
+
+		# Create a temporary username
+		username = createUsername(login_session['name'])
+
+		# Place username into login_session
+		login_session['username'] = username
+
+		# Place into database
+		createUser(login_session)
+
+	else:
+		user = session.query(User).filter_by(email=data['email']).first()
+		login_session['provider'] = 'facebook'
+		login_session['name'] = user.name
+		login_session['username'] = user.username
+		login_session['email'] = user.email
+		login_session['picture'] = user.picture
+		login_session['main_character'] = user.main_character
+		login_session['permission'] = user.permission
+
+
+	# Display success and return home
+	flash('Success! Now logged in as {}.'.format(login_session['username']))
+	return render_template('home.html',
+							login_session=login_session)
+
+# END FACEBOOK LOGIN
+# # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # #
 # GOOGLE+ LOGIN
 @app.route('/gconnect', methods = ['POST'])
 def gconnect():
+	
 	state = request.args.get('state')
+	print(state)
 	if state != login_session['state']:
 		response = make_response(json.dumps('Invalid state. Redirecting...'),401)
 		response.headers['Content-Type'] = 'application/json'
 		return response
+
 	oneTimeCode = request.data
 	if oneTimeCode is None:
 		response = make_response(json.dumps('Missing one time code. Try again.'),401)
 		response.headers['content-type'] = 'application/json'
 		return response
+	
 	# Try exchanging one time code for access_token
 	try:
 		oauth = flow_from_clientsecrets('./secrets/client_secrets.json',scope='')
@@ -239,23 +358,39 @@ def gconnect():
 	params = {'access_token': credentials.access_token, 'alt':'json'}
 	answer = requests.get(userinfo_url,params=params)
 	data = answer.json()
+	
+	# If this user's email already exists, stop here and just log that user in
+	if checkEmail(data['email']):
+		user = session.query(User).filter_by(email = data['email']).first()
+		login_session['name'] = user.name
+		login_session['username'] = user.username
+		login_session['email'] = user.email
+		login_session['main_character'] = user.main_character
+		login_session['picture'] = user.picture
+		login_session['provider'] = 'google'
+		login_session['permission'] = user.permission
+		
+		flash('Success! Now logged in as {}.'.format(login_session['username']))
+		return render_template('home.html',
+								login_session=login_session)
 
 	# Store user info in our login_session
 	login_session['provider'] = 'google'
-	login_session['username'] = data['name']
+	login_session['name'] = data['name']
 	login_session['picture'] = data['picture']
 	login_session['email'] = data['email']
 
+	# Create a username for them since google doesn't give us that
+	username = createUsername(login_session['name'])
+	login_session['username'] = username
+
 	# If we don't have the user's email, create the user
-	user_id = getIDFromEmail(login_session['email'])
-	if user_id is None:
-		user_id = createUser(login_session)
-	login_session['user_id'] = user_id
-
+	createUser(login_session)
+	
 	# create a flash message that lets the user know that they are logged in
-	# flash('You are now logged in as {}'.format(login_session['username']))
-
-	return redirect('/')
+	flash('Success! Now logged in as {}'.format(login_session['username']))
+	return render_template('home.html',
+							login_session=login_session)
 
 # Logout route
 @app.route('/gdisconnect')
@@ -310,44 +445,53 @@ def getUserID(username):
 		return None
 
 def createInternalUser(name, username, email, password, Cpassword):
-
+	
 	# If something doesn't fit login criteria, redirect back to login page
 	if name == None or username == None or password == None or Cpassword == None or password != Cpassword:
-		flash('Some criteria not met')
+		print('Some criteria not met')
 		return None
-
-	# If the username or email already exists then flash a warning
+	
+	# Check if the username exists, if it does then generate one
 	existingUsername = session.query(User).filter_by(username=username).first()
-	existingEmail = session.query(User).filter_by(email=email).first()
-	if existingUsername != None or existingEmail != None:
-		return redirect('Login')
+	if existingUsername is not None:
+		username = createUsername(name)
 
+	# Check if the email exists, if it does, tell them to just log in
+	existingEmail = session.query(User).filter_by(email=email).first()
+	if existingEmail is not None:
+		flash('That email already exists, just log in!')
+		return redirect(url_for('Login',login_session=login_session))
+
+	
 	# If it all checks out, then create a login session
 	login_session['name'] = name
 	login_session['username'] = username
 	login_session['email'] = email
-
+	login_session['permission'] = 'standard'
+	
 	# Write user into database
 	user = User(name = name,
 				username = username,
 				email = email,
-				password = password)
-
+				permission = login_session['permission'])
+	user.hash_password(password)
 	session.add(user)
 	session.commit()
-
+	
 	# Return username
 	return login_session['username']
 
 
 def logUserIn(username, password):
 	user = session.query(User).filter_by(username=username).first()
-	if user.password == password and user != None:
+	if user != None and user.verify_password(password):
+		login_session['name'] = user.name
 		login_session['username'] = user.username
 		login_session['email'] = user.email
 		login_session['picture'] = user.picture
 		login_session['user_id'] = user.id
-		login_session['character'] = user.main_character
+		login_session['main_character'] = user.main_character
+		login_session['permission'] = user.permission
 		return user.id
 	else:
 		return None
@@ -356,39 +500,41 @@ def logUserIn(username, password):
 def createUser(login_session):
 	if 'email' in login_session:
 		email = login_session['email']
-	else:
-		email = None
-	if 'provider' in login_session and login_session['provider'] == 'google':
-		name = login_session['username']
-		username = name
-	elif 'name' in login_session:
+	elif 'email' in login_session and checkEmail(login_session['email']):
+		flash('That email address already exists.')
+		return render_template('login.html',
+								login_session=login_session)
+	if 'username' in login_session:
+		username = login_session['username']
+	if 'name' in login_session:
 		name = login_session['name']
-		if 'username' in login_session:
-			username = login_session['name']
-	if 'password' in login_session:
-		password = login_session['password']
-	else:
-		password = None
-
+	login_session['permission'] = 'standard'
 	newUser = User(name=name,
 				   username=username,
 				   email=email,
-				   password=password)
+				   permission=login_session['permission'])
+	if 'password' in login_session:
+		newUser.hash_password(login_session['password'])
 	session.add(newUser)
 	session.commit()
-	user = session.query(User).filter_by(email=login_session['email']).one()
+	user = session.query(User).filter_by(email=login_session['email']).first()
 	return user.id
 
-def convertLoginSession(login_session):
-	if 'username' in login_session:
-		session = {}
-		session['username'] = login_session['username']
-		session['email'] = login_session['email']
-		# session['picture'] = login_session['picture']
-		return session
+
+def checkEmail(email):
+	user = session.query(User).filter_by(email = email).first()
+	if user is None:
+		return False
 	else:
-		session = None
-		return session
+		return True
+
+
+def checkUsername(username):
+	user = session.query(User).filter_by(username = username).first()
+	if user is None:
+		return False
+	else:
+		return True
 
 
 def clear_login_session(login_session):
@@ -404,15 +550,30 @@ def clear_login_session(login_session):
 		del login_session['picture']
 	if 'gplus_id' in login_session:
 		del login_session['gplus_id']
-	if 'character' in login_session:
-		del login_session['character']
+	if 'main_character' in login_session:
+		del login_session['main_character']
 	if 'user_id' in login_session:
 		del login_session['user_id']
 	if 'provider' in login_session:
 		del login_session['provider']
 	if 'user_id' in login_session:
 		del login_session['user_id']
-	
+	if 'access_token' in login_session:
+		del login_session['access_token']
+	if 'permission' in login_session:
+		del login_session['permission']
+
+
+def createUsername(name):
+	name = name.replace(' ', '-')
+	iterator = 0
+	username = name + '-' + str(iterator)
+	user = session.query(User).filter_by(username = username).first()
+	while(user is not None):
+		iterator += 1
+		username = name + '-' + str(iterator)
+		user = session.query(User).filter_by(username = username).first()
+	return username
 
 if __name__ == '__main__':
 	app.secret_key = 'super secret key'

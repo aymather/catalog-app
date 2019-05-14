@@ -6,5 +6,11 @@
 <body>
     {% include "/components/nav.html" %}
     {% include "/components/home_body.html" %}
+    {% include "/components/footer.html" %}
+    <script src="../../static/js/index.js"></script>
 </body>
+<script>
+    console.log('{{login_session.name}}');
+    console.log('{{login_session.username}}');
+</script>
 </html>
